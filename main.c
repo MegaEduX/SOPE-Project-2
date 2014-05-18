@@ -265,7 +265,7 @@ int main(int argc, const char *argv[]) {
 	 
 	printf("Prime Numbers: ");
 	
-	int i;
+	unsigned int i;
 	
 	for (i = 1; i < count; i++)
 		printf("%d ", sharedQueue[i]);
