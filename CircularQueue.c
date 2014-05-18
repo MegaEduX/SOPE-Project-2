@@ -10,7 +10,7 @@ void queue_init(CircularQueue **q, unsigned int capacity) {
 	*q = (CircularQueue *) malloc(sizeof(CircularQueue)); 
 	sem_init(&((*q)->empty), 0, capacity); 
 	sem_init(&((*q)->full), 0, 0); 
-	pthread_mutex_init(&((*q)->mutex), NULL); 
+	//	pthread_mutex_init(&((*q)->mutex), NULL); 
 	(*q)->v = (QueueElem *) malloc(capacity * sizeof(QueueElem)); 
 	(*q)->capacity = capacity;
 	(*q)->first = 0; 

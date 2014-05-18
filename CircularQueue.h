@@ -6,10 +6,10 @@ typedef struct {
 	QueueElem *v;
 	unsigned int first;
 	unsigned int last;
-	unsigned int capacity;	//	What for?
+	unsigned int capacity;
 	sem_t empty;
 	sem_t full;
-	pthread_mutex_t mutex;	//	What for?
+	//	pthread_mutex_t mutex;		//	What for?
 } CircularQueue;
 
 void queue_init(CircularQueue **q, unsigned int capacity);

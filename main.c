@@ -3,25 +3,23 @@
 
 #include "CircularQueue.h"
 
-int main() {
+CircularQueue* create_all_numbers_queue(int max) {
 	CircularQueue *queue;
 	
-	queue_init(&queue, 10);
+	queue_init(&queue, max + 2);
 	
-	printf("Inserting 1...\n");
-	queue_put(queue, 1);
+	int i;
 	
-	printf("Inserting 2...\n");
-	queue_put(queue, 2);
+	for (i = 2; i <= max; i++)
+		queue_put(queue, i);
 	
-	printf("Inserting 5...\n");
-	queue_put(queue, 5);
+	queue_put(queue, 0);
 	
-	printf("Inserting 4...\n");
-	queue_put(queue, 4);
-	
-	printf("Inserting 3...\n");
-	queue_put(queue, 3);
+	return queue;
+}
+
+int main() {
+	CircularQueue *queue = create_all_numbers_queue(10);
 	
 	unsigned int val1 = (unsigned int) queue_get(queue);
 	unsigned int val2 = (unsigned int) queue_get(queue);
