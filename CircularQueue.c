@@ -1,3 +1,10 @@
+/*	
+ *	CircularQueue.c
+ *	
+ *	(c) 2014 Eduardo Almeida and Joao Almeida
+ * 	SOPE 2013/2014 (T3G02)
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -59,6 +66,16 @@ QueueElem queue_get(CircularQueue *q) {
 } 
 
 void queue_destroy(CircularQueue *q) {
-	free(q->v);	//	Free the underlaying array
-	free(q);		//	Free the queue itself
+	//	Release the allocated objects...
+	
+	free(q->v);
+	
+	pthread_mutex_destroy(&(q->mutex));
+	
+	sem_destroy(&(q->empty));
+	sem_destroy(&(q->full));
+	
+	//	Release the queue itself...
+	
+	free(q);	
 }

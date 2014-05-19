@@ -1,3 +1,10 @@
+/*	
+ *	main.c
+ *	
+ *	(c) 2014 Eduardo Almeida and Joao Almeida
+ *	SOPE 2013/2014 (T3G02)
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,6 +23,8 @@
 
 #define NEXT_PRIME_POS_INDEX 0
 
+#define DEBUG 0
+
 char SHM1_NAME[] = "/SOPE_2_SHM1";
 
 char SEM1_NAME[] = "/SOPE_2_SEM1";
@@ -23,6 +32,10 @@ char SEM2_NAME[] = "/SOPE_2_SEM2";
 
 int _shared_region_size = 0;
 int _max_number = 0;
+
+/*
+ *	Function that creates the circular queue with all the numbers from 2 to N.
+ */
 
 CircularQueue* create_all_numbers_queue(int max) {
 	CircularQueue *queue;
@@ -38,6 +51,10 @@ CircularQueue* create_all_numbers_queue(int max) {
 	
 	return queue;
 }
+
+/*
+ *	Function that gets the shared memory region.
+ */
 
 int get_shared_memory_region(unsigned int **array) {
 	int shmfd = shm_open(SHM1_NAME, O_RDWR, 0600);
@@ -55,6 +72,11 @@ int get_shared_memory_region(unsigned int **array) {
 
 	return 0;
 }
+
+/*
+ *	Function that creates the shared memory region.
+ *	MUST be called before get_shared_memory_region().
+ */
 
 int create_shared_memory_region(int max) {
 	_shared_region_size = ((1.2 * (max / log(max))) + 2) * sizeof(unsigned int);
@@ -92,6 +114,10 @@ int create_shared_memory_region(int max) {
 	return 0;
 }
 
+/*
+ *	Function that places a number into shared memory.
+ */
+
 int place_number_into_shared_memory(unsigned int number) {
 	unsigned int *array;
 	
@@ -107,7 +133,9 @@ int place_number_into_shared_memory(unsigned int number) {
 	
 	array[array[NEXT_PRIME_POS_INDEX]] = number;
 	
+	#if DEBUG
 	printf("Placed Number %d on index %d...\n", array[array[NEXT_PRIME_POS_INDEX]], array[NEXT_PRIME_POS_INDEX]);
+	#endif
 	
 	array[NEXT_PRIME_POS_INDEX]++;
 	
@@ -115,6 +143,10 @@ int place_number_into_shared_memory(unsigned int number) {
 	
 	return 0;
 }
+
+/*
+ *	Filter Thread.
+ */
 
 void *filter_thread(void *arg) {
 	CircularQueue *entryQueue = (CircularQueue *) arg;
@@ -130,19 +162,21 @@ void *filter_thread(void *arg) {
 		exit(EXIT_FAILURE);
 	}
 	
+	#if DEBUG
 	printf("Placed %d on the shared memory region.\n", first);
+	#endif
 	
 	unsigned int number = 0;
 	
 	if (first > sqrt(_max_number)) {
+		#if DEBUG
 		printf("Finished, the rest are primes. (%d and up)\n", first);
+		#endif
 		
 		while (( number = queue_get(entryQueue) ))	//	Get each number from the entry queue up until "0"
 			place_number_into_shared_memory(number);
 		
-		//	signal the EOP semaphore
-		
-		//	printf("Signaling the semaphore...\n");
+		//	Signal the EOP semaphore, we are done!
 		
 		sem_t *semaphore = sem_open(SEM1_NAME, 0, 0600, NULL);
 		
@@ -162,15 +196,19 @@ void *filter_thread(void *arg) {
 	pthread_create(&filter_tid, NULL, filter_thread, exitQueue);
 	
 	while (( number = queue_get(entryQueue) ))	//	Get each number from the entry queue up until "0"
-		if (number % first)	//	Up so far, the number is not prime.
+		if (number % first)	//	So far, the number is prime.
 			queue_put(exitQueue, number);
 	
 	queue_put(exitQueue, 0);
 	
-	//	queue_destroy(entryQueue);
+	queue_destroy(entryQueue);
 	
 	return NULL;
 }
+
+/*
+ *	Main Thread.
+ */
 
 void *main_thread(void *arg) {
 	CircularQueue *entryQueue = create_all_numbers_queue(_max_number);
@@ -190,7 +228,9 @@ void *main_thread(void *arg) {
 		exit(EXIT_FAILURE);
 	}
 	
+	#if DEBUG
 	printf("Placed %d on the shared memory region.\n", first);
+	#endif
 	
 	unsigned int number = 0;
 	
@@ -200,14 +240,22 @@ void *main_thread(void *arg) {
 	
 	queue_put(exitQueue, 0);
 	
-	//	queue_destroy(entryQueue);
+	queue_destroy(entryQueue);
 	
 	return NULL;
 }
 
+/*
+ *	Helper comparision function for use with qsort().
+ */
+
 int cq_compare(const void *a, const void *b) {
    return *(unsigned int *) a - *(unsigned int *) b;
 }
+
+/*
+ *	The program entry point.
+ */
 
 int main(int argc, const char *argv[]) {
 	int launchErr = 0;
@@ -265,7 +313,7 @@ int main(int argc, const char *argv[]) {
 	
 	qsort(sharedQueue, count, sizeof(unsigned int), cq_compare);
 	 
-	printf("Prime Numbers: ");
+	printf("Prime Numbers up to %d (%d): ", _max_number, count);
 	
 	unsigned int i;
 	

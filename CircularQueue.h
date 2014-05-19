@@ -1,3 +1,10 @@
+/*	
+ *	CircularQueue.h
+ *	
+ *	(c) 2014 Eduardo Almeida and Joao Almeida
+ *	SOPE 2013/2014 (T3G02)
+ */
+
 #include <semaphore.h>
 
 typedef unsigned long QueueElem; 
