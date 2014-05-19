@@ -10,7 +10,7 @@ void queue_init(CircularQueue **q, unsigned int capacity) {
 	*q = (CircularQueue *) malloc(sizeof(CircularQueue)); 
 	sem_init(&((*q)->empty), 0, capacity); 
 	sem_init(&((*q)->full), 0, 0); 
-	//	pthread_mutex_init(&((*q)->mutex), NULL); 
+	pthread_mutex_init(&((*q)->mutex), NULL); 
 	(*q)->v = (QueueElem *) malloc(capacity * sizeof(QueueElem)); 
 	(*q)->capacity = capacity;
 	(*q)->first = 0; 
@@ -20,9 +20,13 @@ void queue_init(CircularQueue **q, unsigned int capacity) {
 void queue_put(CircularQueue *q, QueueElem value) {
 	sem_wait(&(q->empty));	//	Proceeds if a value can be placed, blocks if not.
 	
+	pthread_mutex_lock(&(q->mutex));
+	
 	(q->v)[q->last] = value;
 	
 	q->last++;
+	
+	pthread_mutex_unlock(&(q->mutex));
 	
 	sem_post(&(q->full));
 }
@@ -39,11 +43,15 @@ void _queue_rot(CircularQueue *q) {
 QueueElem queue_get(CircularQueue *q) { 
 	sem_wait(&(q->full));
 	
+	pthread_mutex_lock(&(q->mutex));
+	
 	QueueElem val = (q->v)[q->first];
 	
 	_queue_rot(q);
 	
 	q->last--;
+	
+	pthread_mutex_unlock(&(q->mutex));
 	
 	sem_post(&(q->empty));
 	

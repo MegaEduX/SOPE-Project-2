@@ -57,7 +57,7 @@ int get_shared_memory_region(unsigned int **array) {
 }
 
 int create_shared_memory_region(int max) {
-	_shared_region_size = (max + 2) * sizeof(unsigned int);
+	_shared_region_size = ((1.2 * (max / log(max))) + 2) * sizeof(unsigned int);
 	
 	int shmfd = shm_open(SHM1_NAME, O_CREAT | O_RDWR, 0600);
 	
@@ -135,6 +135,8 @@ void *filter_thread(void *arg) {
 	unsigned int number = 0;
 	
 	if (first > sqrt(_max_number)) {
+		printf("Finished, the rest are primes. (%d and up)\n", first);
+		
 		while (( number = queue_get(entryQueue) ))	//	Get each number from the entry queue up until "0"
 			place_number_into_shared_memory(number);
 		

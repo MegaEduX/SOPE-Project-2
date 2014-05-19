@@ -13,7 +13,7 @@ BINDIR := bin
 
 $(BINDIR)/$(PROG) : $(OBJFILES)
 		mkdir -p $(BINDIR)
-		$(LINK.o) $(LDFLAGS) -o $@ $^
+		$(LINK.o) -o $@ $^ $(LDFLAGS)
 		rm *.d
 		rm *.o
 clean :
